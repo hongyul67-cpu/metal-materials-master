@@ -1,0 +1,956 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>금속재료시험 마스터</title>
+<!-- 결과 제출 위젯: ?rc=<교사 Apps Script exec> 링크로 열 때만 제출 버튼이 나타납니다 -->
+<script src="https://hongyul67-cpu.github.io/links/collector.js" data-tool="금속재료시험 마스터"></script>
+<style>
+:root{
+  --bg:#12151b; --bg2:#191d26; --panel:#1e2430; --panel2:#252c3a;
+  --line:#333c4d; --ink:#e8edf5; --dim:#9aa7bd; --dim2:#6b7688;
+  --ember:#ff7a1a; --ember2:#ffb347; --spark:#ffd66b;
+  --steel:#6fb3ff; --good:#39d98a; --bad:#ff5d6c; --gold:#ffd166;
+  --r:16px; --sh:0 8px 26px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  font-family:"Malgun Gothic","맑은 고딕",system-ui,-apple-system,sans-serif;
+  background:radial-gradient(1200px 700px at 70% -10%,#1c2432,#0f1218 60%);
+  color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%;
+}
+.wrap{max-width:940px;margin:0 auto;padding:14px 14px 90px}
+h1,h2,h3,p{margin:0}
+button{font-family:inherit;cursor:pointer;border:none}
+.hidden{display:none!important}
+
+/* ===== Top bar ===== */
+.topbar{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;
+  padding:10px 4px;margin-bottom:10px;background:linear-gradient(#12151b,rgba(18,21,27,.6) 80%,transparent);}
+.brand{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;letter-spacing:-.5px}
+.brand .logo{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,var(--ember),#c1440e);
+  display:grid;place-items:center;box-shadow:0 3px 10px rgba(255,122,26,.4);font-size:17px}
+.brand small{display:block;font-size:10.5px;color:var(--dim);font-weight:700;letter-spacing:.3px}
+.spacer{flex:1}
+.hud{display:flex;align-items:center;gap:8px;font-weight:800;font-size:13px}
+.hud .chip{background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:6px 11px;display:flex;gap:6px;align-items:center}
+.hud .chip b{color:var(--spark)}
+#combo{color:var(--ember2)}
+.icobtn{background:var(--panel);border:1px solid var(--line);color:var(--ink);width:38px;height:38px;border-radius:11px;font-size:16px}
+.icobtn.on{border-color:var(--ember);color:var(--ember2)}
+
+/* ===== Cards / buttons ===== */
+.card{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);
+  border-radius:var(--r);padding:18px;box-shadow:var(--sh)}
+.btn{background:var(--panel2);border:1px solid var(--line);color:var(--ink);border-radius:12px;
+  padding:12px 16px;font-weight:800;font-size:15px;transition:transform .08s,border-color .15s}
+.btn:active{transform:scale(.96)}
+.btn.primary{background:linear-gradient(135deg,var(--ember),#d4560f);border-color:#ff934a;color:#fff;
+  box-shadow:0 6px 16px rgba(255,122,26,.32)}
+.btn.ghost{background:transparent}
+.btn.wide{width:100%}
+.btn.sm{padding:9px 13px;font-size:13.5px;border-radius:10px}
+.row{display:flex;gap:10px;flex-wrap:wrap}
+.grid{display:grid;gap:12px}
+.pill{display:inline-flex;align-items:center;gap:6px;background:var(--panel2);border:1px solid var(--line);
+  border-radius:999px;padding:5px 11px;font-size:12.5px;font-weight:800;color:var(--dim)}
+
+/* ===== Home ===== */
+.hero{text-align:center;padding:20px 12px 6px}
+.hero h1{font-size:26px;font-weight:900;letter-spacing:-1px}
+.hero .sub{color:var(--dim);margin-top:8px;font-size:14px;line-height:1.6}
+.modecards{display:grid;grid-template-columns:1fr;gap:13px;margin-top:20px}
+@media(min-width:680px){.modecards{grid-template-columns:repeat(3,1fr)}}
+.mode{position:relative;overflow:hidden;text-align:left;border-radius:18px;padding:20px 18px 18px;
+  border:1px solid var(--line);background:linear-gradient(160deg,var(--panel),var(--bg2));cursor:pointer;
+  transition:transform .12s,border-color .15s,box-shadow .15s}
+.mode:hover{transform:translateY(-3px);border-color:var(--ember);box-shadow:0 12px 30px rgba(0,0,0,.45)}
+.mode .em{font-size:34px}
+.mode h3{font-size:19px;margin-top:10px;font-weight:900}
+.mode p{color:var(--dim);font-size:13px;margin-top:6px;line-height:1.55}
+.mode .tag{position:absolute;top:14px;right:14px;font-size:11px;font-weight:800;color:var(--bg);
+  background:var(--ember2);border-radius:999px;padding:3px 9px}
+.mode.learn .em{filter:drop-shadow(0 0 12px rgba(255,179,71,.4))}
+.mode.game{border-color:#2c3a4d}
+.mode .prog{margin-top:12px;height:6px;border-radius:99px;background:#0c0f14;overflow:hidden}
+.mode .prog i{display:block;height:100%;background:linear-gradient(90deg,var(--ember),var(--spark));width:0}
+.mode .progtxt{font-size:11px;color:var(--dim2);margin-top:6px;font-weight:700}
+
+.section-title{display:flex;align-items:center;gap:9px;font-weight:900;font-size:18px;margin:4px 2px 12px}
+.back{background:var(--panel);border:1px solid var(--line);color:var(--ink);border-radius:10px;padding:8px 12px;font-weight:800;font-size:13px}
+
+/* ===== Learn ===== */
+.topiclist{display:grid;gap:10px}
+.topic{display:flex;align-items:center;gap:13px;padding:14px;border-radius:14px;border:1px solid var(--line);
+  background:var(--panel);cursor:pointer;transition:border-color .15s,transform .1s}
+.topic:active{transform:scale(.99)}
+.topic:hover{border-color:var(--ember)}
+.topic .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:22px;background:var(--panel2);flex:none}
+.topic .tt{flex:1;min-width:0}
+.topic .tt b{font-size:15.5px;font-weight:900}
+.topic .tt span{display:block;color:var(--dim);font-size:12.5px;margin-top:3px}
+.topic .done{color:var(--good);font-weight:900;font-size:18px}
+.topic .chev{color:var(--dim2);font-size:20px}
+
+.deck{min-height:60vh}
+.slide{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--line);border-radius:18px;
+  padding:22px 20px;box-shadow:var(--sh)}
+.slide .kicker{font-size:12.5px;font-weight:800;color:var(--ember2);letter-spacing:.4px}
+.slide h2{font-size:22px;font-weight:900;margin-top:8px;letter-spacing:-.5px}
+.slide .body{margin-top:14px;font-size:15px;line-height:1.7;color:#dfe6f0}
+.slide .body b{color:#fff}
+.slide .body .hl{color:var(--spark);font-weight:800}
+.slide .note{margin-top:14px;padding:12px 13px;border-radius:12px;background:rgba(255,122,26,.09);
+  border:1px solid rgba(255,122,26,.3);font-size:13.5px;line-height:1.6;color:var(--ember2)}
+.slide .note b{color:var(--spark)}
+.slide .tip{margin-top:10px;padding:11px 13px;border-radius:12px;background:rgba(111,179,255,.08);
+  border:1px solid rgba(111,179,255,.25);font-size:13px;line-height:1.6;color:#bcd8ff}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin-top:12px;font-size:14px}
+.kv dt{color:var(--ember2);font-weight:800}
+.kv dd{margin:0;color:#dfe6f0}
+.formula{margin-top:14px;text-align:center;font-size:20px;font-weight:800;padding:14px;border-radius:12px;
+  background:#0c0f15;border:1px solid var(--line);letter-spacing:.5px;color:#fff}
+.formula small{color:var(--dim);font-size:12px;font-weight:600}
+.canvasbox{margin:14px auto 0;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#07090d;width:100%;max-width:420px}
+.canvasbox canvas{display:block;width:100%;height:auto}
+.decknav{display:flex;align-items:center;gap:10px;margin-top:16px}
+.dots{flex:1;display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.dot{width:8px;height:8px;border-radius:99px;background:var(--line)}
+.dot.on{background:var(--ember);transform:scale(1.3)}
+
+/* ===== Games hub ===== */
+.gamehub{display:grid;gap:12px;grid-template-columns:1fr}
+@media(min-width:600px){.gamehub{grid-template-columns:1fr 1fr}}
+.gcard{text-align:left;border-radius:16px;padding:18px;border:1px solid var(--line);
+  background:linear-gradient(160deg,var(--panel),var(--bg2));cursor:pointer;transition:transform .12s,border-color .15s}
+.gcard:hover{transform:translateY(-2px);border-color:var(--ember)}
+.gcard .em{font-size:30px}
+.gcard h3{font-size:17px;font-weight:900;margin-top:8px}
+.gcard p{color:var(--dim);font-size:12.5px;margin-top:5px;line-height:1.5}
+.gcard .best{font-size:11.5px;color:var(--gold);font-weight:800;margin-top:8px}
+
+/* ===== Quiz shared ===== */
+.qhead{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.qcount{font-weight:900;font-size:15px}
+.qcount span{color:var(--ember2)}
+.gauge{height:12px;border-radius:99px;background:#0b0e13;border:1px solid var(--line);overflow:hidden;margin-bottom:14px;position:relative}
+.gauge i{display:block;height:100%;background:linear-gradient(90deg,#c1440e,var(--ember),var(--spark));width:0;transition:width .4s}
+.qtext{font-size:18px;font-weight:800;line-height:1.55;margin-bottom:6px}
+.qsub{color:var(--dim);font-size:13px;margin-bottom:14px}
+.opts{display:grid;gap:10px}
+.opt{text-align:left;padding:14px 15px;border-radius:13px;border:1px solid var(--line);background:var(--panel);
+  color:var(--ink);font-size:15px;font-weight:700;transition:transform .08s,border-color .12s,background .12s}
+.opt:active{transform:scale(.98)}
+.opt:hover{border-color:var(--ember)}
+.opt.correct{border-color:var(--good);background:rgba(57,217,138,.14);color:#c9ffe4}
+.opt.wrong{border-color:var(--bad);background:rgba(255,93,108,.14);color:#ffd2d6}
+.opt.dim{opacity:.5}
+.numin{width:100%;font-size:20px;font-weight:800;text-align:center;padding:14px;border-radius:13px;
+  background:#0c0f15;border:1px solid var(--line);color:#fff;letter-spacing:.5px}
+.numin:focus{outline:none;border-color:var(--ember)}
+.explain{margin-top:14px;padding:13px 14px;border-radius:12px;background:var(--panel2);border:1px solid var(--line);
+  font-size:13.5px;line-height:1.65;color:#dfe6f0}
+.explain b{color:var(--spark)}
+.matchgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mitem{padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel);font-weight:700;
+  font-size:13.5px;text-align:center;cursor:pointer;transition:transform .08s,border-color .12s}
+.mitem:active{transform:scale(.97)}
+.mitem.sel{border-color:var(--ember);background:rgba(255,122,26,.12)}
+.mitem.matched{opacity:.35;pointer-events:none;border-color:var(--good)}
+
+/* ===== Result ===== */
+.result{text-align:center;padding:10px}
+.bigscore{font-size:56px;font-weight:900;letter-spacing:-2px;line-height:1}
+.bigscore small{font-size:22px;color:var(--dim)}
+.stars{font-size:30px;letter-spacing:4px;margin:10px 0}
+.wrongbox{text-align:left;margin-top:16px}
+.wrongbox h4{font-size:14px;color:var(--dim);margin-bottom:8px}
+.wrongitem{padding:11px 13px;border-radius:11px;background:var(--panel);border:1px solid var(--line);margin-bottom:8px;font-size:13px;line-height:1.55}
+.wrongitem b{color:var(--ember2)}
+
+/* ===== FX layer ===== */
+#fxlayer{position:fixed;inset:0;pointer-events:none;z-index:60;overflow:hidden}
+.particle{position:absolute;width:8px;height:8px;border-radius:2px;will-change:transform,opacity}
+.combopop{position:fixed;z-index:61;font-weight:900;font-size:26px;color:var(--ember2);
+  text-shadow:0 2px 12px rgba(255,122,26,.6);pointer-events:none}
+.flash{position:fixed;inset:0;z-index:55;pointer-events:none;opacity:0}
+.flash.bad{background:radial-gradient(circle,rgba(255,60,80,.001),rgba(255,40,60,.28))}
+.flash.good{background:radial-gradient(circle,rgba(90,255,160,.001),rgba(60,220,140,.16))}
+@keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(4px)}30%,50%,70%{transform:translateX(-8px)}40%,60%{transform:translateX(8px)}}
+.shake{animation:shake .5s}
+@keyframes punch{0%{transform:scale(1)}40%{transform:scale(1.09)}100%{transform:scale(1)}}
+.punch{animation:punch .3s}
+.banner{position:fixed;inset:0;z-index:70;display:grid;place-items:center;background:rgba(6,8,12,.72);
+  backdrop-filter:blur(3px);opacity:0;transition:opacity .3s}
+.banner.show{opacity:1}
+.bannerbox{background:linear-gradient(180deg,var(--panel),var(--bg2));border:1px solid var(--ember);
+  border-radius:22px;padding:30px 28px;text-align:center;max-width:340px;margin:16px;box-shadow:0 20px 60px rgba(0,0,0,.6);
+  transform:scale(.85);transition:transform .35s cubic-bezier(.2,1.3,.4,1)}
+.banner.show .bannerbox{transform:scale(1)}
+.bannerbox .bem{font-size:52px}
+.bannerbox h2{font-size:24px;font-weight:900;margin-top:8px}
+.bannerbox p{color:var(--dim);margin-top:8px;font-size:14px;line-height:1.5}
+.bannerbox .stars{margin:14px 0 4px}
+.foot{text-align:center;color:var(--dim2);font-size:11.5px;margin-top:26px;line-height:1.6}
+@media (prefers-reduced-motion:reduce){.shake,.punch{animation:none!important}.mode:hover{transform:none}}
+</style>
+</head>
+<body>
+<div id="fxlayer"></div>
+<div class="flash" id="flash"></div>
+
+<div class="wrap">
+  <div class="topbar">
+    <div class="brand"><span class="logo">🔥</span><div>금속재료시험 마스터<small>금속재료시험기능사 · 실기 &amp; 필답</small></div></div>
+    <div class="spacer"></div>
+    <div class="hud">
+      <div class="chip">⭐ <b id="score">0</b></div>
+      <div class="chip" id="combochip">🔥 <span id="combo">0</span> 콤보</div>
+    </div>
+    <button class="icobtn" id="soundbtn" title="소리 켜기/끄기">🔇</button>
+  </div>
+
+  <!-- ============ HOME ============ -->
+  <section id="view-home">
+    <div class="hero">
+      <h1>🔩 금속재료시험 마스터</h1>
+      <p class="sub">불꽃·경도·충격·조직 <b style="color:var(--ember2)">실기 4대 작업</b>부터 필답 이론까지<br>
+      보고 배우고 → 게임으로 익히고 → 테스트로 확인하세요.</p>
+    </div>
+    <div class="modecards">
+      <button class="mode learn" data-go="learn">
+        <span class="tag">여기부터</span>
+        <div class="em">📖</div>
+        <h3>배우기</h3>
+        <p>정답을 다 보여주는 학습 카드. 맞힐 필요 없이 넘기기만 하면 개념이 잡혀요.</p>
+        <div class="prog"><i id="learnprog"></i></div>
+        <div class="progtxt" id="learnprogtxt">0 / 8 완료</div>
+      </button>
+      <button class="mode game" data-go="games">
+        <div class="em">🎮</div>
+        <h3>게임</h3>
+        <p>불꽃 판별·조직 판별·경도/충격 계산·개념 매칭. 손으로 익히는 수업 보조도구.</p>
+        <div class="progtxt" id="gamebesttxt" style="margin-top:12px">최고 콤보에 도전!</div>
+      </button>
+      <button class="mode game" data-go="test">
+        <div class="em">🎯</div>
+        <h3>테스트</h3>
+        <p>필답 이론 + 실기 계산 20문항. 채점 후 선생님께 결과 제출까지.</p>
+        <div class="progtxt" id="testbesttxt" style="margin-top:12px">아직 기록 없음</div>
+      </button>
+    </div>
+    <p class="foot">💡 처음이라면 <b>배우기</b>부터. 실기시험은 불꽃·브리넬경도·충격·조직 4작업 + 필답 15문항으로 구성됩니다.</p>
+  </section>
+
+  <!-- ============ LEARN LIST ============ -->
+  <section id="view-learn" class="hidden">
+    <div class="section-title"><button class="back" data-go="home">← 홈</button> 📖 배우기</div>
+    <div class="topiclist" id="topiclist"></div>
+    <p class="foot">각 주제를 끝까지 넘기면 <b>✓</b>가 붙습니다. 다 봤으면 게임과 테스트로!</p>
+  </section>
+
+  <!-- ============ LEARN DECK ============ -->
+  <section id="view-deck" class="hidden">
+    <div class="section-title"><button class="back" data-go="learn">← 목록</button> <span id="decktitle"></span></div>
+    <div class="deck">
+      <div class="slide" id="slide"></div>
+      <div class="decknav">
+        <button class="btn sm" id="prevslide">← 이전</button>
+        <div class="dots" id="dots"></div>
+        <button class="btn sm primary" id="nextslide">다음 →</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ GAMES HUB ============ -->
+  <section id="view-games" class="hidden">
+    <div class="section-title"><button class="back" data-go="home">← 홈</button> 🎮 게임</div>
+    <div class="gamehub">
+      <button class="gcard" data-game="spark"><div class="em">🔥</div><h3>불꽃 판별</h3>
+        <p>그라인더 불꽃 모양을 보고 강종을 맞혀요. (SM25C·SM45C·STC105·STD11·SKH51)</p><div class="best" id="best-spark"></div></button>
+      <button class="gcard" data-game="struct"><div class="em">🔬</div><h3>조직 판별</h3>
+        <p>현미경 미세조직을 보고 조직·강종을 맞혀요. (페라이트·펄라이트·주철…)</p><div class="best" id="best-struct"></div></button>
+      <button class="gcard" data-game="calc"><div class="em">🧮</div><h3>계산 훈련</h3>
+        <p>브리넬 경도·충격값을 랜덤 수치로 직접 계산. 실기 필답 대비.</p><div class="best" id="best-calc"></div></button>
+      <button class="gcard" data-game="match"><div class="em">🔗</div><h3>개념 매칭</h3>
+        <p>용어와 설명을 짝지어요. 필답 이론 암기용.</p><div class="best" id="best-match"></div></button>
+    </div>
+    <p class="foot">게임은 연습용이에요. 틀려도 괜찮으니 콤보를 쌓아보세요!</p>
+  </section>
+
+  <!-- ============ GAME PLAY (spark/struct/calc) ============ -->
+  <section id="view-play" class="hidden">
+    <div class="section-title"><button class="back" data-go="games">← 게임</button> <span id="playtitle"></span></div>
+    <div class="card">
+      <div class="qhead"><div class="qcount">문제 <span id="p-cur">1</span> / <span id="p-total">10</span></div>
+        <div class="pill">🔥 <span id="p-combo">0</span> 콤보</div></div>
+      <div class="gauge"><i id="p-gauge"></i></div>
+      <div id="p-body"></div>
+    </div>
+  </section>
+
+  <!-- ============ MATCH GAME ============ -->
+  <section id="view-match" class="hidden">
+    <div class="section-title"><button class="back" data-go="games">← 게임</button> 🔗 개념 매칭</div>
+    <div class="card">
+      <div class="qhead"><div class="qcount">맞춘 짝 <span id="m-done">0</span> / <span id="m-total">6</span></div>
+        <div class="pill" id="m-msg">왼쪽 용어 → 오른쪽 설명 순으로 누르세요</div></div>
+      <div class="matchgrid" id="matchgrid"></div>
+    </div>
+  </section>
+
+  <!-- ============ TEST ============ -->
+  <section id="view-test" class="hidden">
+    <div class="section-title"><button class="back" data-go="home" id="testback">← 홈</button> 🎯 테스트</div>
+    <div class="card" id="testcard"></div>
+  </section>
+</div>
+
+<script>
+/* =========================================================
+   FX — 연출 레이어 (파티클·콤보·플래시·흔들림·배너·카운트업)
+   교실 기본: 소리 OFF. prefers-reduced-motion 존중.
+   ========================================================= */
+const RM = matchMedia('(prefers-reduced-motion:reduce)').matches;
+const FX = (()=>{
+  const layer=document.getElementById('fxlayer'), flash=document.getElementById('flash');
+  let sound=false, actx=null;
+  function tone(freq,dur=.08,type='triangle',vol=.15){
+    if(!sound) return;
+    try{ actx=actx||new(window.AudioContext||window.webkitAudioContext)();
+      const o=actx.createOscillator(),g=actx.createGain();
+      o.type=type;o.frequency.value=freq;o.connect(g);g.connect(actx.destination);
+      g.gain.setValueAtTime(vol,actx.currentTime);
+      g.gain.exponentialRampToValueAtTime(.0001,actx.currentTime+dur);
+      o.start();o.stop(actx.currentTime+dur);
+    }catch(e){}
+  }
+  function burst(x,y,colors){
+    if(RM) return;
+    for(let i=0;i<16;i++){
+      const p=document.createElement('div');p.className='particle';
+      p.style.left=x+'px';p.style.top=y+'px';
+      p.style.background=colors[i%colors.length];
+      layer.appendChild(p);
+      const ang=Math.random()*Math.PI*2, sp=40+Math.random()*130;
+      const dx=Math.cos(ang)*sp, dy=Math.sin(ang)*sp-40;
+      const rot=(Math.random()*720-360)+'deg';
+      p.animate([{transform:'translate(0,0) rotate(0)',opacity:1},
+        {transform:`translate(${dx}px,${dy+90}px) rotate(${rot})`,opacity:0}],
+        {duration:700+Math.random()*400,easing:'cubic-bezier(.2,.7,.3,1)'}).onfinish=()=>p.remove();
+    }
+  }
+  function punch(el){ if(el&&!RM){el.classList.remove('punch');void el.offsetWidth;el.classList.add('punch');} }
+  function shake(el){ if(el&&!RM){el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');} }
+  function doflash(kind){ flash.className='flash '+kind;
+    flash.animate([{opacity:0},{opacity:1},{opacity:0}],{duration:kind==='bad'?420:300}); }
+  function combopop(x,y,n){
+    if(RM||n<2) return;
+    const el=document.createElement('div');el.className='combopop';
+    el.textContent='🔥'+n+' 콤보!';el.style.left=(x-40)+'px';el.style.top=(y-40)+'px';
+    document.body.appendChild(el);
+    el.animate([{transform:'translateY(0) scale(.6)',opacity:0},
+      {transform:'translateY(-14px) scale(1.1)',opacity:1,offset:.3},
+      {transform:'translateY(-52px) scale(1)',opacity:0}],{duration:900}).onfinish=()=>el.remove();
+  }
+  function countUp(el,to,ms=800){
+    const from=parseInt(el.textContent)||0,t0=performance.now();
+    (function step(t){const k=Math.min(1,(t-t0)/ms);
+      el.textContent=Math.round(from+(to-from)*(1-Math.pow(1-k,3)));
+      if(k<1)requestAnimationFrame(step);else el.textContent=to;})(t0);
+  }
+  return {
+    ok(el,ev){ const r=(el||document.body).getBoundingClientRect();
+      const x=ev?ev.clientX:r.left+r.width/2, y=ev?ev.clientY:r.top+r.height/2;
+      burst(x,y,['#ffd66b','#ff7a1a','#ffb347','#fff']);punch(el);doflash('good');tone(660,.09);tone(880,.09);},
+    no(el){ shake(el);doflash('bad');tone(160,.18,'sawtooth',.12); },
+    combopop, countUp, doflash, punch, shake, tone,
+    banner({icon,title,sub,stars,btn,onClose}){
+      const b=document.createElement('div');b.className='banner';
+      b.innerHTML=`<div class="bannerbox"><div class="bem">${icon||'🏅'}</div>
+        <h2>${title||''}</h2>${stars!=null?`<div class="stars">${'★'.repeat(stars)+'☆'.repeat(3-stars)}</div>`:''}
+        <p>${sub||''}</p><button class="btn primary wide" style="margin-top:16px">${btn||'계속'}</button></div>`;
+      document.body.appendChild(b);requestAnimationFrame(()=>b.classList.add('show'));
+      if(sound){tone(523,.1);setTimeout(()=>tone(659,.1),90);setTimeout(()=>tone(784,.16),180);}
+      b.querySelector('button').onclick=()=>{b.classList.remove('show');setTimeout(()=>b.remove(),300);onClose&&onClose();};
+    },
+    setSound(v){sound=v;if(v&&!actx){try{actx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}},
+    get sound(){return sound;}
+  };
+})();
+function starsFor(mistakes){return mistakes===0?3:mistakes<=2?2:mistakes<=4?1:0;}
+
+/* ===== global score/combo HUD ===== */
+const State={score:0,combo:0,maxcombo:0};
+const $=id=>document.getElementById(id);
+function addScore(n){State.score+=n;FX.countUp($('score'),State.score,500);}
+function hitCombo(ev){State.combo++;State.maxcombo=Math.max(State.maxcombo,State.combo);
+  $('combo').textContent=State.combo;
+  if(ev)FX.combopop(ev.clientX,ev.clientY,State.combo);
+  $('combochip').style.transform='scale(1.12)';setTimeout(()=>$('combochip').style.transform='',150);}
+function resetCombo(){State.combo=0;$('combo').textContent=0;}
+
+/* sound toggle */
+$('soundbtn').onclick=()=>{const v=!FX.sound;FX.setSound(v);
+  $('soundbtn').textContent=v?'🔊':'🔇';$('soundbtn').classList.toggle('on',v);};
+
+/* ===== router ===== */
+const views=['home','learn','deck','games','play','match','test'];
+function go(v){views.forEach(x=>$('view-'+x).classList.toggle('hidden',x!==v));window.scrollTo(0,0);}
+document.body.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){go(b.dataset.go);if(b.dataset.go==='learn')renderTopics();if(b.dataset.go==='games')renderGamesHub();if(b.dataset.go==='home')refreshHome();if(b.dataset.go==='test')startTest();}});
+
+/* =========================================================
+   CANVAS ART — 불꽃 & 미세조직 (게임/학습 공용)
+   ========================================================= */
+// 강종별 불꽃 프로파일
+const SPARK={
+  SM25C:{name:'SM25C (기계구조용 저탄소강 0.25%C)',streaks:26,len:1.0,burst:2,color:'#ffcf6b',tail:'flower',hint:'유선 길고 밝은 오렌지, 파열 적음'},
+  SM45C:{name:'SM45C (기계구조용 중탄소강 0.45%C)',streaks:34,len:1.0,burst:5,color:'#ffc24a',tail:'flower',hint:'파열이 뚜렷이 늘어남, 꽃가루 증가'},
+  STC105:{name:'STC105/STC3 (탄소공구강 ~1.05%C)',streaks:44,len:.95,burst:9,color:'#ffd98a',tail:'burst',hint:'파열 매우 많고 꽃가루가 풍성'},
+  STD11:{name:'STD11 (냉간금형 고Cr강)',streaks:18,len:.72,burst:2,color:'#ff8a5a',tail:'plain',hint:'Cr이 불꽃을 억제 → 짧고 암적색, 파열 적음'},
+  SKH51:{name:'SKH51 (고속도공구강 W-Mo-Cr-V)',streaks:14,len:.6,burst:1,color:'#ff7245',tail:'droplet',hint:'W이 억제 → 매우 짧고 붉음, 끝에 물방울 꼬리'}
+};
+function drawSpark(cv,key,seed){
+  const p=SPARK[key],ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  let s=seed||1;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280;};
+  ctx.fillStyle='#07090d';ctx.fillRect(0,0,W,H);
+  // grinding wheel
+  const ox=W*0.12, oy=H*0.5;
+  ctx.fillStyle='#2a3140';ctx.beginPath();ctx.arc(ox-30,oy,46,0,7);ctx.fill();
+  ctx.strokeStyle='#3a4354';ctx.lineWidth=3;ctx.beginPath();ctx.arc(ox-30,oy,46,0,7);ctx.stroke();
+  ctx.fillStyle='#151a22';ctx.beginPath();ctx.arc(ox-30,oy,12,0,7);ctx.fill();
+  for(let i=0;i<p.streaks;i++){
+    const ang=(rnd()-0.5)*0.85;                       // spread
+    const L=(W*0.72)*p.len*(0.6+rnd()*0.5);
+    const ex=ox+Math.cos(ang)*L, ey=oy+Math.sin(ang)*L;
+    // main streak
+    const g=ctx.createLinearGradient(ox,oy,ex,ey);
+    g.addColorStop(0,'#fff6d8');g.addColorStop(.3,p.color);g.addColorStop(1,'rgba(255,120,40,0)');
+    ctx.strokeStyle=g;ctx.lineWidth=1.4+rnd()*1.1;ctx.beginPath();ctx.moveTo(ox,oy);
+    ctx.lineTo(ex,ey);ctx.stroke();
+    // bursts (파열) along the streak
+    const nb=Math.round(p.burst*(0.5+rnd()));
+    for(let b=0;b<nb;b++){
+      const t=0.35+rnd()*0.6, bx=ox+(ex-ox)*t, by=oy+(ey-oy)*t;
+      const spokes=3+Math.floor(rnd()*3);
+      ctx.strokeStyle=p.color;ctx.lineWidth=1;
+      for(let k=0;k<spokes;k++){const a2=rnd()*7,ln=3+rnd()*6;
+        ctx.beginPath();ctx.moveTo(bx,by);ctx.lineTo(bx+Math.cos(a2)*ln,by+Math.sin(a2)*ln);ctx.stroke();}
+      ctx.fillStyle='#fff2c8';ctx.beginPath();ctx.arc(bx,by,1.1,0,7);ctx.fill();
+    }
+    // tail decoration at end
+    if(p.tail==='flower'||p.tail==='burst'){
+      const spokes=p.tail==='burst'?8:5;ctx.strokeStyle='#fff0c0';ctx.lineWidth=1;
+      for(let k=0;k<spokes;k++){const a2=rnd()*7,ln=4+rnd()*7;
+        ctx.beginPath();ctx.moveTo(ex,ey);ctx.lineTo(ex+Math.cos(a2)*ln,ey+Math.sin(a2)*ln);ctx.stroke();}
+    }else if(p.tail==='droplet'){
+      ctx.fillStyle='#ffdca0';ctx.beginPath();ctx.arc(ex,ey,2.6,0,7);ctx.fill();
+    }
+  }
+}
+// 조직 프로파일
+const STRUCT={
+  ferrite:{label:'페라이트 (α철)',hint:'밝은 다각형 결정립, 연하고 무름'},
+  pearlite:{label:'펄라이트',hint:'페라이트+시멘타이트가 겹친 층상(줄무늬) 조직'},
+  hypo:{label:'아공석강 (0.45%C)',hint:'흰 페라이트 + 검은 펄라이트 혼합'},
+  hyper:{label:'과공석강 (1.05%C)',hint:'펄라이트 + 결정립계 망상 시멘타이트(흰 그물)'},
+  nodular:{label:'구상흑연주철 (불스아이)',hint:'검은 흑연구 + 흰 페라이트 링'},
+  gray:{label:'회주철',hint:'검은 편상(조각) 흑연'}
+};
+function drawStruct(cv,key,seed){
+  const ctx=cv.getContext('2d'),W=cv.width,H=cv.height;
+  let s=seed||1;const rnd=()=>{s=(s*9301+49297)%233280;return s/233280;};
+  // base grains (Voronoi-ish random polygons via random cells)
+  ctx.fillStyle='#c9ccd2';ctx.fillRect(0,0,W,H);
+  const pts=[];for(let i=0;i<26;i++)pts.push([rnd()*W,rnd()*H]);
+  function lamella(x0,y0,r,rot){ // 층상 펄라이트 패치
+    ctx.save();ctx.translate(x0,y0);ctx.rotate(rot);
+    ctx.beginPath();ctx.arc(0,0,r,0,7);ctx.clip();
+    for(let y=-r;y<r;y+=3){ctx.strokeStyle=(Math.floor((y+r)/3)%2)?'#3a3f47':'#e9ebef';
+      ctx.lineWidth=1.6;ctx.beginPath();ctx.moveTo(-r,y);ctx.lineTo(r,y);ctx.stroke();}
+    ctx.restore();
+  }
+  function grainlines(){ctx.strokeStyle='#8a8f98';ctx.lineWidth=1;
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i][0]-pts[j][0],dy=pts[i][1]-pts[j][1];
+      if(dx*dx+dy*dy<9000){ctx.beginPath();ctx.moveTo(pts[i][0],pts[i][1]);ctx.lineTo(pts[j][0],pts[j][1]);ctx.stroke();}}}
+  if(key==='ferrite'){
+    grainlines();
+    ctx.fillStyle='rgba(120,125,135,.25)';
+    pts.forEach(p=>{ctx.beginPath();ctx.arc(p[0],p[1],2,0,7);ctx.fill();});
+  }else if(key==='pearlite'){
+    for(let i=0;i<14;i++)lamella(rnd()*W,rnd()*H,18+rnd()*16,rnd()*3.14);
+  }else if(key==='hypo'){
+    grainlines();
+    for(let i=0;i<8;i++)lamella(rnd()*W,rnd()*H,14+rnd()*12,rnd()*3.14); // pearlite colonies
+  }else if(key==='hyper'){
+    for(let i=0;i<16;i++)lamella(rnd()*W,rnd()*H,20+rnd()*14,rnd()*3.14);
+    // white cementite network along boundaries
+    ctx.strokeStyle='#fbfdff';ctx.lineWidth=3;
+    for(let i=0;i<pts.length;i++)for(let j=i+1;j<pts.length;j++){
+      const dx=pts[i][0]-pts[j][0],dy=pts[i][1]-pts[j][1];
+      if(dx*dx+dy*dy<7000){ctx.beginPath();ctx.moveTo(pts[i][0],pts[i][1]);ctx.lineTo(pts[j][0],pts[j][1]);ctx.stroke();}}
+  }else if(key==='nodular'){
+    for(let i=0;i<10;i++)lamella(rnd()*W,rnd()*H,16+rnd()*12,rnd()*3.14); // pearlite matrix
+    for(let i=0;i<7;i++){const x=30+rnd()*(W-60),y=26+rnd()*(H-52),r=10+rnd()*7;
+      ctx.fillStyle='#eef0f3';ctx.beginPath();ctx.arc(x,y,r+6,0,7);ctx.fill();      // ferrite ring
+      ctx.fillStyle='#0d0f13';ctx.beginPath();ctx.arc(x,y,r,0,7);ctx.fill();}        // graphite nodule
+  }else if(key==='gray'){
+    for(let i=0;i<10;i++)lamella(rnd()*W,rnd()*H,16+rnd()*12,rnd()*3.14);
+    ctx.strokeStyle='#0c0e12';ctx.lineCap='round';
+    for(let i=0;i<14;i++){const x=rnd()*W,y=rnd()*H;ctx.lineWidth=2+rnd()*2.5;
+      ctx.beginPath();ctx.moveTo(x,y);let cx=x,cy=y;
+      for(let k=0;k<4;k++){cx+=(rnd()-.5)*40;cy+=(rnd()-.5)*40;ctx.lineTo(cx,cy);}ctx.stroke();}
+  }
+  ctx.strokeStyle='#000';ctx.lineWidth=2;ctx.strokeRect(1,1,W-2,H-2);
+}
+
+/* =========================================================
+   LEARN — 배우기 (배우기 먼저 원칙: 정답을 다 보여줌)
+   ========================================================= */
+const LEARN=[
+ {id:'intro',icon:'🧭',title:'금속재료시험이 하는 일',sub:'전체 그림 잡기',slides:[
+   {kicker:'이게 전부입니다',h:'재료를 "믿고 쓸 수 있는지" 확인하는 일',
+    body:`쇠라고 다 같은 쇠가 아니에요. 어떤 강은 무르고 어떤 강은 단단합니다. <b>금속재료시험</b>은 그 재료가
+    <span class="hl">얼마나 단단한지(경도)</span>, <span class="hl">얼마나 잘 견디는지(충격)</span>,
+    <span class="hl">무슨 강인지(불꽃·조직)</span>를 밝혀내는 작업입니다.`,
+    note:`딱 이게 전부예요. 어렵게 느껴지는 용어들은 전부 "이 재료 어때?"를 알아보는 방법의 이름일 뿐입니다.`},
+   {kicker:'실기시험 구성',h:'2시간, 4가지 작업',
+    body:`실기시험에서는 시험편을 받아 아래 4가지를 하고 검사기록표를 작성합니다.`,
+    kv:[['① 불꽃시험','강을 갈아 튀는 불꽃으로 강종 판별'],['② 브리넬 경도','압흔을 재서 경도값 계산'],
+        ['③ 충격시험','파괴 에너지로 충격값 계산'],['④ 조직시험','연마·부식 후 현미경으로 강종 판별']],
+    tip:`필답형은 별도로 시행 — 이론 15문항(1시간). 이 도구의 "테스트"가 그 대비입니다.`}
+ ]},
+ {id:'spark',icon:'🔥',title:'① 불꽃시험',sub:'강을 갈아 불꽃으로 강종 판별',slides:[
+   {kicker:'원리',h:'갈면 튀는 불꽃이 강의 신분증',
+    body:`강을 그라인더에 갈면 뜨거운 쇳가루가 튀며 공기 중 산소와 반응해 <b>불꽃</b>이 됩니다.
+    <span class="hl">탄소가 많을수록</span> 도중에 터지는 <b>파열(破裂)</b>이 많아지고 꽃가루가 풍성해져요.`,
+    note:`관찰 3부위 → <b>뿌리 = 유선</b>(불꽃의 색·굵기) / <b>중앙 = 파열</b>(탄소량) / <b>끝 = 꽃가루</b>. 필답 단골!`},
+   {kicker:'저탄소 → 고탄소',h:'탄소가 늘면 파열도 는다',
+    body:`아래는 실제 불꽃 모양이에요. 넘겨 보며 파열 수의 차이를 눈에 익히세요.`,
+    canvas:'SM25C'},
+   {kicker:'중탄소',h:'SM45C — 파열이 확 늘어남',body:`0.45%C. 파열과 꽃가루가 SM25C보다 뚜렷이 많아집니다.`,canvas:'SM45C'},
+   {kicker:'고탄소 공구강',h:'STC105 — 파열·꽃가루 폭발',body:`~1.05%C. 파열이 매우 많고 끝에서 꽃가루가 활짝 핍니다.`,canvas:'STC105'},
+   {kicker:'합금강의 함정',h:'STD11 — Cr이 불꽃을 "억제"',
+    body:`탄소가 있어도 <b>Cr·W·Ni</b> 같은 합금원소는 불꽃을 <span class="hl">억제</span>합니다.
+    STD11(고Cr)은 짧고 암적색이며 파열이 적어요.`,canvas:'STD11',
+    note:`억제 원소: <b>W, Cr, Ni, Si, Mo</b> / 촉진 원소: <b>Mn</b>. 탄소만 보면 틀립니다!`},
+   {kicker:'고속도강',h:'SKH51 — 가장 짧고 붉은 불꽃',
+    body:`W을 많이 함유(고속도강)해 불꽃이 매우 짧고 붉으며, 끝에 <b>물방울(적색 꼬리)</b>이 달립니다.`,canvas:'SKH51',
+    tip:`실기 예시 강종: SKH51 · SM25C · STC105(STC3) · SM45C · STD11 — 이 5개 안에서만 답을 씁니다.`}
+ ]},
+ {id:'brinell',icon:'⚖️',title:'② 브리넬 경도',sub:'압흔 지름 → 경도값 계산',slides:[
+   {kicker:'원리',h:'강구로 눌러 자국 크기로 경도 판단',
+    body:`강철 볼(지름 D)을 하중 P로 눌러 생긴 <b>압흔 지름 d</b>를 확대경으로 잽니다.
+    자국이 <span class="hl">작을수록 단단</span>(경도↑)하죠.`,
+    tip:`실기: KS에 따라 3곳을 측정해 평균 d로 계산. 50 초과면 정수까지, 50 이하면 소수 둘째자리 반올림.`},
+   {kicker:'공식',h:'브리넬 경도 HB',
+    body:`아래 식을 외우세요. 분모의 괄호가 핵심입니다.`,
+    formula:`HB = 2P / [ πD ( D − √(D²−d²) ) ]<br><small>P: 하중(kgf) · D: 강구지름(mm) · d: 압흔지름(mm)</small>`,
+    note:`예) P=3000, D=10, d=4 → √(100−16)=9.165 → HB = 6000 / [π·10·(10−9.165)] ≈ <b>228.7</b>`},
+   {kicker:'다른 경도시험도 알아두기',h:'경도시험 4형제',
+    body:`필답에 자주 나옵니다.`,
+    kv:[['브리넬 HB','강구 압입, 압흔 지름'],['비커스 HV','136° 다이아몬드 피라미드'],
+        ['로크웰 HRC','다이아몬드 원뿔 120°, 기준10·시험150kgf'],['로크웰 HRB','강구 1.588mm, 시험 100kgf'],['쇼어 HS','추를 떨어뜨려 튀는 높이(반발)']],
+    tip:`로크웰 C: 기준하중 10kgf, 시험하중 150kgf, 압입자 각 120° — 통째 암기 문제로 자주 출제!`}
+ ]},
+ {id:'impact',icon:'🔨',title:'③ 충격시험',sub:'파괴 에너지 → 충격값 계산',slides:[
+   {kicker:'원리',h:'추로 때려 부러뜨려 인성 측정',
+    body:`노치를 낸 시험편을 <b>샤르피 충격시험기</b>로 때려 부러뜨립니다. 부러뜨리는 데 쓴 에너지가 클수록
+    <span class="hl">인성(끈질김)</span>이 좋은 재료예요. 해머가 시험편을 부순 뒤 반대편으로 올라간 각도로 계산합니다.`},
+   {kicker:'공식',h:'충격에너지 E 와 충격값',
+    body:`해머무게 W, 팔길이 R, 든 각도 α, 파괴 후 각도 β, 노치부 단면적 A₀.`,
+    formula:`E = W·R·(cos β − cos α) [kgf·m]<br>충격값 = E / A₀ [kgf·m/cm²]<br><small>α: 처음 든 각 · β: 부순 뒤 올라간 각 (β&lt;α)</small>`,
+    note:`파괴에 에너지를 많이 쓸수록 β가 작아져 올라가는 높이가 낮아집니다 → E는 커짐.`},
+   {kicker:'관련 이론',h:'천이온도 · 취성',
+    body:`온도가 낮아지면 충격값이 급격히 떨어지는 온도를 <b>천이온도</b>라 합니다. 그 아래에서는 <b>취성 파괴</b>(뚝 부러짐)가 일어나요.`,
+    tip:`샤르피는 노치를 때리는 쪽 반대에 두고, 아이조드는 세워서 시험 — 노치 위치가 다릅니다.`}
+ ]},
+ {id:'struct',icon:'🔬',title:'④ 조직시험',sub:'연마·부식 후 현미경 관찰',slides:[
+   {kicker:'절차',h:'갈고 → 부식시키고 → 들여다본다',
+    body:`시험편을 <b>거친연마(#800→#1200)</b> → <b>미세연마(Al₂O₃)</b> → <b>나이탈로 부식</b> → 현미경 검경합니다.
+    부식액이 조직 경계를 파고들어 조직이 드러나요.`,
+    note:`나이탈 = <b>질산(HNO₃) + 에틸알콜</b>. 철강 부식용 표준 부식액입니다.`},
+   {kicker:'기본 조직',h:'탄소강의 3대 조직',
+    body:`페라이트는 연하고, 시멘타이트는 매우 단단하며, 그 둘이 층층이 겹친 게 펄라이트입니다.`,
+    kv:[['페라이트(α철)','밝음, 연함, 다각형 결정립'],['시멘타이트(Fe₃C)','매우 단단, 흰 그물/판'],['펄라이트','페라이트+시멘타이트 층상(줄무늬)']],
+    canvas:'pearlite'},
+   {kicker:'탄소량으로 구분',h:'아공석강 (SM45C)',
+    body:`0.77%C 미만. 흰 <b>페라이트</b> 바탕에 검은 <b>펄라이트</b>가 섞여 있어요. 탄소가 많을수록 펄라이트가 늘어납니다.`,canvas:'hypo'},
+   {kicker:'탄소량으로 구분',h:'과공석강 (STC105)',
+    body:`0.77%C 초과. 펄라이트 결정립계를 따라 흰 <b>망상 시멘타이트</b>(그물)가 나타납니다.`,canvas:'hyper'},
+   {kicker:'주철 조직',h:'구상흑연주철 — 불스 아이',
+    body:`검은 <b>구상 흑연</b> 둘레를 흰 <b>페라이트</b>가 링처럼 감싼 모양(황소 눈). 필답 단골 사진!`,canvas:'nodular',
+    note:`불스아이: 주철명=<b>구상흑연주철</b> / 검은 부분=<b>흑연</b> / 흰 링=<b>페라이트</b>`},
+   {kicker:'주철 조직',h:'회주철 — 편상 흑연',
+    body:`검은 <b>편상(조각) 흑연</b>이 흩어진 조직. 흑연 모양(편상↔구상)이 주철 종류를 가릅니다.`,canvas:'gray'}
+ ]},
+ {id:'defect',icon:'🧪',title:'필답 핵심 ①',sub:'편석·매크로결함·입도·마모',slides:[
+   {kicker:'설퍼프린트',h:'황(S)의 분포 = 편석',
+    body:`인화지에 대고 황 분포를 보는 시험. 황이 몰린 위치로 편석을 판정합니다.`,
+    kv:[['정편석','중심부에 황이 많음(일반적)'],['역편석','바깥쪽에 황이 많음'],['중심부편석','중심에 짙게 몰림'],['점상편석','점점이 흩어짐']]},
+   {kicker:'매크로 조직 결함 기호(KS)',h:'기호로 외우기',
+    body:`강의 매크로 시험 결함 표시기호입니다.`,
+    kv:[['핀홀(pin hole)','점 모양 작은 구멍'],['잉곳패턴','I'],['개재물','N'],['중심부편석','Sc'],['수지상정','D']]},
+   {kicker:'페라이트 결정입도',h:'FGC · FGI · FGP',
+    body:`탄소강 페라이트 입도 측정법 이름입니다.`,
+    kv:[['FGC','비교법 (표준도와 비교)'],['FGI','절단법 (직선이 자른 입계 수)'],['FGP','점산정법 (점이 걸린 입 수)']]},
+   {kicker:'마모의 종류',h:'세 가지 마모',
+    body:`필답 서술형 단골.`,
+    kv:[['연삭(abrasive)마모','경한 입자·돌기가 표면을 긁어냄'],['응착(adhesive)마모','달라붙었다 떨어지며 이탈'],['부식(corrosive)마모','부식생성물이 상대운동으로 제거됨']]}
+ ]},
+ {id:'ndt',icon:'📡',title:'필답 핵심 ②',sub:'비파괴·크리프·열처리',slides:[
+   {kicker:'초음파 탐상',h:'파의 종류 3가지',
+    body:`진동 방향으로 구분합니다.`,
+    kv:[['종파(縱波)','진행방향과 진동이 같음. 수직탐상·두께측정'],['횡파(전단파)','진행방향에 수직으로 진동'],['표면파(레일리파)','표면 얇은 층에 에너지 집중']]},
+   {kicker:'방사선 투과검사',h:'계조계 · 반음영',
+    body:`계조계(투과도계)는 사진의 <b>대비·감도</b>를 확인하는 시험편. 선원 크기·거리 때문에 생기는 흐림을 <b>반음영(penumbra)</b>이라 합니다.`,
+    tip:`투과사진 흐림 = 반음영(기하학적 흐림) — 선원이 클수록, 시험체-필름 거리가 멀수록 심해짐.`},
+   {kicker:'크리프',h:'고온에서 천천히 늘어남',
+    body:`일정 하중에서 시간이 지나며 서서히 변형되는 현상. 영향 인자는 <b>온도·응력(하중)·시간</b>.`,
+    note:`크리프 3대 인자: <b>온도 / 응력 / 시간</b> — 3가지 쓰기 문제로 출제됩니다.`},
+   {kicker:'열처리',h:'4대 기본 열처리',
+    body:`조직시험 강종과 함께 자주 엮여 나와요.`,
+    kv:[['담금질(quenching)','급랭 → 마르텐사이트, 경화'],['뜨임(tempering)','재가열 → 인성 회복'],['풀림(annealing)','노랭 → 연화·응력제거'],['불림(normalizing)','공랭 → 조직 표준화·미세화']],
+    tip:`담금질 조직 경도순: 마르텐사이트 > 트루스타이트 > 소르바이트 > 펄라이트 > 오스테나이트 > 페라이트`}
+ ]}
+];
+const LKEY='mmt_learned_v1';
+function learned(){try{return JSON.parse(localStorage.getItem(LKEY)||'{}');}catch(e){return{};}}
+function markLearned(id){const l=learned();l[id]=1;localStorage.setItem(LKEY,JSON.stringify(l));}
+function renderTopics(){
+  const l=learned(),box=$('topiclist');box.innerHTML='';
+  LEARN.forEach(t=>{
+    const d=document.createElement('button');d.className='topic';
+    d.innerHTML=`<div class="ic">${t.icon}</div><div class="tt"><b>${t.title}</b><span>${t.sub}</span></div>
+      ${l[t.id]?'<div class="done">✓</div>':'<div class="chev">›</div>'}`;
+    d.onclick=()=>openDeck(t.id);box.appendChild(d);
+  });
+}
+let deckState={topic:null,i:0};
+function openDeck(id){deckState={topic:LEARN.find(t=>t.id===id),i:0};$('decktitle').textContent=deckState.topic.icon+' '+deckState.topic.title;go('deck');renderSlide();}
+function renderSlide(){
+  const t=deckState.topic,s=t.slides[deckState.i],el=$('slide');
+  let html=`<div class="kicker">${s.kicker||''}</div><h2>${s.h}</h2>`;
+  if(s.body)html+=`<div class="body">${s.body}</div>`;
+  if(s.formula)html+=`<div class="formula">${s.formula}</div>`;
+  if(s.kv){html+='<dl class="kv">';s.kv.forEach(r=>html+=`<dt>${r[0]}</dt><dd>${r[1]}</dd>`);html+='</dl>';}
+  if(s.canvas)html+=`<div class="canvasbox"><canvas id="deckcv" width="400" height="240"></canvas></div>`;
+  if(s.note)html+=`<div class="note">📌 ${s.note}</div>`;
+  if(s.tip)html+=`<div class="tip">💡 ${s.tip}</div>`;
+  el.innerHTML=html;
+  if(s.canvas){const cv=$('deckcv');if(SPARK[s.canvas])drawSpark(cv,s.canvas,7);else drawStruct(cv,s.canvas,7);}
+  const dots=$('dots');dots.innerHTML='';t.slides.forEach((_,k)=>{const d=document.createElement('div');d.className='dot'+(k===deckState.i?' on':'');dots.appendChild(d);});
+  $('prevslide').style.visibility=deckState.i===0?'hidden':'visible';
+  $('nextslide').textContent=deckState.i===t.slides.length-1?'✓ 학습 완료':'다음 →';
+  FX.punch(el);
+}
+$('prevslide').onclick=()=>{if(deckState.i>0){deckState.i--;renderSlide();}};
+$('nextslide').onclick=()=>{
+  const t=deckState.topic;
+  if(deckState.i<t.slides.length-1){deckState.i++;renderSlide();}
+  else{markLearned(t.id);
+    FX.banner({icon:'📖',title:t.title+' 완료!',sub:'이 주제를 다 봤어요. 게임으로 익혀볼까요?',stars:3,btn:'목록으로',
+      onClose:()=>{renderTopics();go('learn');}});
+    addScore(20);
+  }
+};
+
+/* =========================================================
+   GAMES
+   ========================================================= */
+const BEST=JSON.parse(localStorage.getItem('mmt_best_v1')||'{}');
+function saveBest(g,combo){if(!BEST[g]||combo>BEST[g]){BEST[g]=combo;localStorage.setItem('mmt_best_v1',JSON.stringify(BEST));}}
+function renderGamesHub(){
+  ['spark','struct','calc','match'].forEach(g=>{const e=$('best-'+g);if(e)e.textContent=BEST[g]?('🏆 최고 '+BEST[g]+' 콤보'):'';});
+}
+document.querySelectorAll('[data-game]').forEach(b=>b.onclick=()=>{
+  const g=b.dataset.game;
+  if(g==='match')startMatch();else startPlay(g);
+});
+
+/* ---- spark / struct / calc : 공통 플레이 뷰 ---- */
+let play={game:null,i:0,total:10,combo:0,maxcombo:0,correct:0,q:null};
+function startPlay(game){
+  play={game,i:0,total:10,combo:0,maxcombo:0,correct:0,q:null};
+  $('playtitle').textContent=game==='spark'?'🔥 불꽃 판별':game==='struct'?'🔬 조직 판별':'🧮 계산 훈련';
+  $('p-total').textContent=play.total;go('play');nextPlay();
+}
+function updatePlayHead(){$('p-cur').textContent=play.i+1;$('p-combo').textContent=play.combo;
+  $('p-gauge').style.width=(play.i/play.total*100)+'%';}
+function endPlay(){
+  saveBest(play.game,play.maxcombo);
+  const best=BEST[play.game]||play.maxcombo;
+  FX.banner({icon:play.game==='spark'?'🔥':play.game==='struct'?'🔬':'🧮',
+    title:'게임 종료!',sub:`정답 ${play.correct}/${play.total} · 이번 최고 콤보 ${play.maxcombo} · 역대 최고 ${best}`,
+    stars:starsFor(play.total-play.correct),
+    btn:'게임 목록',onClose:()=>{renderGamesHub();go('games');}});
+}
+function nextPlay(){
+  if(play.i>=play.total){endPlay();return;}
+  updatePlayHead();
+  if(play.game==='spark')renderSparkQ();
+  else if(play.game==='struct')renderStructQ();
+  else renderCalcQ();
+}
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function optionButtons(container,choices,correct,onResult){
+  const opts=document.createElement('div');opts.className='opts';
+  shuffle(choices).forEach(c=>{
+    const b=document.createElement('button');b.className='opt';b.textContent=c.label;
+    b.onclick=(ev)=>{
+      if(opts.dataset.done)return;opts.dataset.done='1';
+      const right=c.key===correct;
+      Array.from(opts.children).forEach(x=>{if(x===b)x.classList.add(right?'correct':'wrong');
+        else if(x.textContent===choices.find(z=>z.key===correct).label)x.classList.add('correct');else x.classList.add('dim');});
+      onResult(right,ev,b);
+    };
+    opts.appendChild(b);
+  });
+  container.appendChild(opts);
+}
+function resultFlow(right,ev,el){
+  if(right){FX.ok(el,ev);play.combo++;play.maxcombo=Math.max(play.maxcombo,play.combo);play.correct++;hitCombo(ev);addScore(10);$('p-combo').textContent=play.combo;}
+  else{FX.no(el);play.combo=0;resetCombo();$('p-combo').textContent=0;}
+}
+function nextBtnAfter(container,label){
+  const nb=document.createElement('button');nb.className='btn primary wide';nb.style.marginTop='14px';
+  nb.textContent=label||'다음 →';nb.onclick=()=>{play.i++;nextPlay();};container.appendChild(nb);
+}
+
+function renderSparkQ(){
+  const body=$('p-body');body.innerHTML='';
+  const keys=Object.keys(SPARK),ans=keys[Math.floor(Math.random()*keys.length)],seed=Math.floor(Math.random()*90000)+10;
+  body.innerHTML=`<div class="qtext">이 불꽃의 강종은?</div>
+    <div class="canvasbox"><canvas id="pcv" width="400" height="240"></canvas></div>`;
+  drawSpark($('pcv'),ans,seed);
+  const wrap=document.createElement('div');body.appendChild(wrap);
+  const choices=keys.map(k=>({key:k,label:k}));
+  optionButtons(wrap,choices,ans,(right,ev,el)=>{
+    resultFlow(right,ev,el);
+    const ex=document.createElement('div');ex.className='explain';
+    ex.innerHTML=`<b>${ans}</b> — ${SPARK[ans].name.split('(')[1]?.replace(')','')||''}<br>${SPARK[ans].hint}`;
+    wrap.appendChild(ex);nextBtnAfter(wrap,play.i===play.total-1?'결과 보기':'다음 →');
+  });
+}
+function renderStructQ(){
+  const body=$('p-body');body.innerHTML='';
+  const keys=Object.keys(STRUCT),ans=keys[Math.floor(Math.random()*keys.length)],seed=Math.floor(Math.random()*90000)+10;
+  body.innerHTML=`<div class="qtext">이 미세조직은?</div>
+    <div class="canvasbox"><canvas id="pcv" width="400" height="240"></canvas></div>`;
+  drawStruct($('pcv'),ans,seed);
+  const wrap=document.createElement('div');body.appendChild(wrap);
+  const choices=keys.map(k=>({key:k,label:STRUCT[k].label}));
+  optionButtons(wrap,choices,ans,(right,ev,el)=>{
+    resultFlow(right,ev,el);
+    const ex=document.createElement('div');ex.className='explain';
+    ex.innerHTML=`<b>${STRUCT[ans].label}</b><br>${STRUCT[ans].hint}`;
+    wrap.appendChild(ex);nextBtnAfter(wrap,play.i===play.total-1?'결과 보기':'다음 →');
+  });
+}
+function renderCalcQ(){
+  const body=$('p-body');body.innerHTML='';
+  const type=Math.random()<0.5?'brinell':'impact';
+  let qtext,sub,ans,explain;
+  if(type==='brinell'){
+    const P=[500,1000,1500,2000,3000][Math.floor(Math.random()*5)];
+    const D=10,d=+(2.5+Math.random()*4).toFixed(1);
+    const root=Math.sqrt(D*D-d*d);
+    ans=2*P/(Math.PI*D*(D-root));
+    ans=ans>50?Math.round(ans):+ans.toFixed(2);
+    qtext=`브리넬 경도 HB를 구하시오.`;
+    sub=`P=${P}kgf, D=${D}mm, d=${d}mm  →  HB = 2P / [πD(D−√(D²−d²))]`;
+    explain=`√(${D}²−${d}²)=${root.toFixed(3)} → HB = ${2*P} / [π·${D}·(${D}−${root.toFixed(3)})] ≈ <b>${ans}</b>`;
+  }else{
+    const W=[10,15,20,25][Math.floor(Math.random()*4)];
+    const R=[0.75,0.8,1.0][Math.floor(Math.random()*3)];
+    const a=[140,150,160][Math.floor(Math.random()*3)];
+    const b=[60,70,80,90][Math.floor(Math.random()*4)];
+    const E=W*R*(Math.cos(b*Math.PI/180)-Math.cos(a*Math.PI/180));
+    ans=+E.toFixed(2);
+    qtext=`충격에너지 E를 구하시오. (kgf·m)`;
+    sub=`W=${W}kgf, R=${R}m, α=${a}°, β=${b}°  →  E = W·R·(cosβ−cosα)`;
+    explain=`E = ${W}·${R}·(cos${b}°−cos${a}°) = ${W}·${R}·(${Math.cos(b*Math.PI/180).toFixed(3)}−(${Math.cos(a*Math.PI/180).toFixed(3)})) ≈ <b>${ans}</b> kgf·m`;
+  }
+  body.innerHTML=`<div class="qtext">${qtext}</div><div class="qsub">${sub}</div>
+    <input class="numin" id="calcin" type="text" inputmode="decimal" placeholder="답 입력 (소수 2자리)" autocomplete="off">
+    <div style="margin-top:12px"></div>`;
+  const wrap=document.createElement('div');body.appendChild(wrap);
+  const chk=document.createElement('button');chk.className='btn primary wide';chk.textContent='정답 확인';
+  wrap.appendChild(chk);
+  chk.onclick=(ev)=>{
+    if(wrap.dataset.done)return;
+    const v=parseFloat($('calcin').value);
+    if(isNaN(v)){$('calcin').classList.add('shake');setTimeout(()=>$('calcin').classList.remove('shake'),500);return;}
+    wrap.dataset.done='1';$('calcin').disabled=true;
+    const tol=Math.max(0.05,Math.abs(ans)*0.02); // 2% 허용
+    const right=Math.abs(v-ans)<=tol;
+    if(right){FX.ok($('calcin'),ev);play.combo++;play.maxcombo=Math.max(play.maxcombo,play.combo);play.correct++;hitCombo(ev);addScore(15);}else{FX.no($('calcin'));play.combo=0;resetCombo();}
+    $('p-combo').textContent=play.combo;
+    const ex=document.createElement('div');ex.className='explain';
+    ex.innerHTML=`${right?'정답! ':'정답: '}<b>${ans}</b><br>${explain}`;
+    chk.replaceWith(ex);nextBtnAfter(wrap,play.i===play.total-1?'결과 보기':'다음 →');
+  };
+  setTimeout(()=>$('calcin')&&$('calcin').focus(),50);
+}
+
+/* ---- 개념 매칭 ---- */
+const MATCH_POOL=[
+  ['나이탈','철강 부식액(질산+에틸알콜)'],
+  ['펄라이트','페라이트+시멘타이트 층상조직'],
+  ['불스아이','구상흑연주철의 흑연+페라이트 링'],
+  ['로크웰 C','기준10·시험150kgf, 120° 다이아몬드'],
+  ['비커스','136° 다이아몬드 피라미드 압입'],
+  ['천이온도','충격값이 급감하는 온도'],
+  ['크리프','고온에서 서서히 변형되는 현상'],
+  ['반음영','방사선 투과사진의 기하학적 흐림'],
+  ['표면파','레일리파, 표면 얇은 층 집중'],
+  ['FGP','페라이트 입도 점산정법'],
+  ['설퍼프린트','황(S)의 편석 분포 관찰'],
+  ['마르텐사이트','담금질로 얻는 가장 단단한 조직'],
+  ['응착마모','붙었다 떨어지며 표면 이탈'],
+  ['불림','공랭으로 조직 표준화·미세화']
+];
+let match={sel:null,done:0,total:6};
+function startMatch(){
+  match={sel:null,done:0,total:6};
+  const pool=shuffle(MATCH_POOL).slice(0,6);
+  const left=shuffle(pool.map((p,i)=>({t:p[0],id:i})));
+  const right=shuffle(pool.map((p,i)=>({t:p[1],id:i})));
+  $('m-total').textContent=6;$('m-done').textContent=0;$('m-msg').textContent='왼쪽 용어 → 오른쪽 설명';
+  const grid=$('matchgrid');grid.innerHTML='';
+  // interleave columns
+  const col=document.createElement('div');col.style.display='contents';
+  const L=document.createElement('div'),Rr=document.createElement('div');
+  L.style.display='grid';L.style.gap='10px';Rr.style.display='grid';Rr.style.gap='10px';
+  left.forEach(x=>{const b=document.createElement('button');b.className='mitem';b.textContent=x.t;b.dataset.id=x.id;b.dataset.side='L';L.appendChild(b);});
+  right.forEach(x=>{const b=document.createElement('button');b.className='mitem';b.textContent=x.t;b.dataset.id=x.id;b.dataset.side='R';Rr.appendChild(b);});
+  grid.appendChild(L);grid.appendChild(Rr);
+  grid.querySelectorAll('.mitem').forEach(b=>b.onclick=(ev)=>onMatchClick(b,ev));
+  go('match');
+}
+function onMatchClick(b,ev){
+  if(b.classList.contains('matched'))return;
+  if(!match.sel){match.sel=b;b.classList.add('sel');return;}
+  if(match.sel===b){b.classList.remove('sel');match.sel=null;return;}
+  if(match.sel.dataset.side===b.dataset.side){match.sel.classList.remove('sel');match.sel=b;b.classList.add('sel');return;}
+  // compare
+  if(match.sel.dataset.id===b.dataset.id){
+    match.sel.classList.add('matched');b.classList.add('matched');match.sel.classList.remove('sel');
+    FX.ok(b,ev);match.done++;$('m-done').textContent=match.done;State.combo++;hitCombo(ev);addScore(10);
+    match.sel=null;
+    if(match.done>=match.total){saveBest('match',match.total);
+      FX.banner({icon:'🔗',title:'매칭 성공!',sub:'6쌍을 모두 맞췄어요.',stars:3,btn:'게임 목록',onClose:()=>{renderGamesHub();go('games');}});}
+  }else{
+    FX.no(b);FX.no(match.sel);const a=match.sel;a.classList.remove('sel');match.sel=null;resetCombo();
+  }
+}
+
+/* =========================================================
+   TEST — 필답 이론 + 실기 계산 (채점 + 결과 제출)
+   ========================================================= */
+const TESTBANK=[
+ {q:'브리넬 경도시험의 압입자로 옳은 것은?',o:['강구(볼)','136° 다이아몬드 피라미드','120° 다이아몬드 원뿔','원통형 강봉'],a:0,e:'브리넬은 강구, 비커스는 136° 피라미드, 로크웰C는 120° 원뿔.'},
+ {q:'로크웰 경도 C스케일의 시험(총)하중은?',o:['60kgf','100kgf','150kgf','1000kgf'],a:2,e:'HRC: 기준하중 10kgf, 시험하중 150kgf, 압입자 120° 다이아몬드.'},
+ {q:'비커스 경도시험 압입자의 대면각은?',o:['120°','136°','150°','90°'],a:1,e:'비커스는 대면각 136°의 다이아몬드 사각뿔.'},
+ {q:'철강 조직시험에 쓰는 부식액 나이탈의 성분은?',o:['염산+물','질산+에틸알콜','황산+글리세린','불산+질산'],a:1,e:'나이탈 = 질산(HNO₃) + 에틸알콜. 철강 표준 부식액.'},
+ {q:'펄라이트를 구성하는 두 조직은?',o:['페라이트+오스테나이트','페라이트+시멘타이트','시멘타이트+마르텐사이트','흑연+페라이트'],a:1,e:'펄라이트 = 페라이트 + 시멘타이트의 층상조직.'},
+ {q:'불꽃시험에서 "탄소량"을 주로 관찰하는 부위는?',o:['뿌리','중앙(파열)','끝','전체 색'],a:1,e:'뿌리=유선, 중앙=파열(탄소량), 끝=꽃가루.'},
+ {q:'불꽃을 억제하여 짧고 붉게 만드는 원소가 아닌 것은?',o:['크롬(Cr)','텅스텐(W)','니켈(Ni)','망간(Mn)'],a:3,e:'Mn은 불꽃을 촉진. Cr·W·Ni·Si는 억제.'},
+ {q:'구상흑연주철의 불스아이 조직에서 흰 링의 조직명은?',o:['시멘타이트','페라이트','펄라이트','흑연'],a:1,e:'검은 구상 흑연을 흰 페라이트가 링으로 감쌈.'},
+ {q:'초음파 탐상에서 수직탐상·두께측정에 쓰는 파는?',o:['횡파','종파','표면파','판파'],a:1,e:'종파(진행방향과 진동 일치)가 수직탐상·두께측정에 사용.'},
+ {q:'표면 얇은 층에 에너지가 집중되는 초음파는?',o:['종파','횡파','표면파(레일리파)','유도파'],a:2,e:'표면파=레일리파, 표면 1파장 깊이에 집중.'},
+ {q:'크리프 현상에 영향을 주는 주요 인자가 아닌 것은?',o:['온도','응력(하중)','시간','자기장'],a:3,e:'크리프 3대 인자: 온도·응력·시간.'},
+ {q:'페라이트 결정입도 측정법 중 "절단법"의 기호는?',o:['FGC','FGI','FGP','FGA'],a:1,e:'FGC 비교법, FGI 절단법, FGP 점산정법.'},
+ {q:'담금질로 얻어지는 가장 단단한 조직은?',o:['페라이트','펄라이트','마르텐사이트','오스테나이트'],a:2,e:'급랭 시 마르텐사이트 생성(가장 경함).'},
+ {q:'공석강(0.77%C)을 상온에서 관찰하면 나타나는 조직은?',o:['페라이트만','펄라이트','시멘타이트만','오스테나이트'],a:1,e:'공석강은 100% 펄라이트.'},
+ {q:'조직시험 절차로 올바른 순서는?',o:['부식→연마→검경','연마→부식→검경','검경→연마→부식','부식→검경→연마'],a:1,e:'거친연마→미세연마→부식→검경.'},
+ {q:'방사선 투과사진에서 선원 크기·거리로 생기는 흐림을 무엇이라 하나?',o:['산란','반음영(penumbra)','회절','노이즈'],a:1,e:'기하학적 흐림 = 반음영.'},
+ {q:'표면의 미세돌기가 붙었다 떨어지며 입자가 이탈하는 마모는?',o:['연삭마모','응착마모','부식마모','피로마모'],a:1,e:'응착(adhesive)마모.'},
+ {q:'불림(normalizing)의 냉각 방법은?',o:['노 안에서 서랭','공기 중 냉각','물에 급랭','기름에 냉각'],a:1,e:'불림=공랭으로 조직 표준화·미세화.'},
+ {q:'충격값의 단위로 옳은 것은?',o:['kgf','kgf·m/cm²','kgf/mm²','mm'],a:1,e:'충격값 = 충격에너지/단면적 → kgf·m/cm².'},
+ {q:'실기 불꽃시험 예시 강종 중 고속도공구강은?',o:['SM25C','STC105','SKH51','STD11'],a:2,e:'SKH51이 고속도강(W-Mo-Cr-V).'}
+];
+let test={i:0,order:[],correct:0,wrong:[],mistakes:0,t0:0,done:false};
+function startTest(){
+  test={i:0,order:shuffle(TESTBANK.map((_,i)=>i)).slice(0,20),correct:0,wrong:[],mistakes:0,t0:Date.now(),done:false};
+  $('testback').textContent='← 홈';renderTestQ();
+}
+function renderTestQ(){
+  const card=$('testcard');
+  if(test.i>=test.order.length){renderTestResult();return;}
+  const q=TESTBANK[test.order[test.i]];
+  card.innerHTML=`<div class="qhead"><div class="qcount">문제 <span>${test.i+1}</span> / ${test.order.length}</div>
+    <div class="pill">✅ ${test.correct}</div></div>
+    <div class="gauge"><i style="width:${test.i/test.order.length*100}%"></i></div>
+    <div class="qtext">${q.q}</div>`;
+  const wrap=document.createElement('div');card.appendChild(wrap);
+  optionButtons(wrap,q.o.map((label,key)=>({key,label})),q.a,(right,ev,el)=>{
+    if(right){FX.ok(el,ev);test.correct++;State.combo++;hitCombo(ev);addScore(10);}
+    else{FX.no(el);test.mistakes++;resetCombo();test.wrong.push({n:test.i+1,q:q.q,a:q.o[q.a],e:q.e});}
+    const ex=document.createElement('div');ex.className='explain';
+    ex.innerHTML=`${right?'⭕ 정답! ':'❌ 정답: <b>'+q.o[q.a]+'</b> '}<br>${q.e}`;
+    wrap.appendChild(ex);
+    const nb=document.createElement('button');nb.className='btn primary wide';nb.style.marginTop='14px';
+    nb.textContent=test.i===test.order.length-1?'채점 결과 보기':'다음 →';
+    nb.onclick=()=>{test.i++;renderTestQ();};wrap.appendChild(nb);
+  });
+}
+function renderTestResult(){
+  test.done=true;
+  const total=test.order.length,correct=test.correct;
+  const pct=Math.round(correct/total*100);
+  const stars=pct>=90?3:pct>=70?2:pct>=50?1:0;
+  const dur=Math.round((Date.now()-test.t0)/1000);
+  const card=$('testcard');
+  card.innerHTML=`<div class="result">
+    <div class="pill" style="margin:0 auto 8px">채점 결과</div>
+    <div class="bigscore"><span id="scoreCount">0</span><small>/${total}</small></div>
+    <div class="stars">${'★'.repeat(stars)+'☆'.repeat(3-stars)}</div>
+    <p style="color:var(--dim)">정답률 ${pct}% · 소요 ${dur}초 · 최고콤보 ${State.maxcombo}</p>
+    <div class="row" style="justify-content:center;margin-top:16px">
+      <button class="btn" id="retryTest">다시 풀기</button>
+      <button class="btn primary" id="submitTest">📤 선생님께 제출</button>
+    </div>
+    <div id="wrongwrap"></div></div>`;
+  FX.countUp($('scoreCount'),correct,1000);
+  if(stars>=1)FX.banner({icon:stars===3?'🏆':'🎉',title:stars===3?'완벽합니다!':'수고했어요!',
+    sub:`${total}문제 중 ${correct}개 정답 (${pct}%)`,stars,btn:'결과 확인'});
+  if(test.wrong.length){
+    const w=$('wrongwrap');w.innerHTML='<div class="wrongbox"><h4>📝 오답노트</h4></div>';
+    const box=w.querySelector('.wrongbox');
+    test.wrong.forEach(x=>{const d=document.createElement('div');d.className='wrongitem';
+      d.innerHTML=`<b>${x.n}. ${x.q}</b><br>정답: ${x.a} · ${x.e}`;box.appendChild(d);});
+  }
+  $('retryTest').onclick=()=>startTest();
+  // 결과 제출 (?rc= 있을 때만)
+  const sb=$('submitTest');
+  const hasRC=(window.ResultCollector&&ResultCollector.config&&ResultCollector.config.endpoint)||/[?&]rc=/.test(location.search);
+  if(!hasRC){sb.style.display='none';}
+  sb.onclick=()=>{
+    if(window.ResultCollector){
+      ResultCollector.open({score:correct*5,correct,total,
+        wrong:test.wrong.map(x=>x.n),durationSec:dur,
+        labels:{score:'점수',correct:'정답수',total:'총문항',rate:'정답률(%)',wrong:'오답번호'}});
+    }else{alert('제출 기능은 선생님이 배포한 링크(?rc=...)로 열었을 때 작동합니다.');}
+  };
+  refreshHome();
+}
+
+/* =========================================================
+   HOME progress refresh
+   ========================================================= */
+function refreshHome(){
+  const l=learned(),done=Object.keys(l).length,tot=LEARN.length;
+  $('learnprog').style.width=(done/tot*100)+'%';
+  $('learnprogtxt').textContent=`${done} / ${tot} 완료`;
+  const bc=Math.max(...Object.values(BEST).concat([0]));
+  $('gamebesttxt').textContent=bc?`🏆 최고 ${bc} 콤보`:'최고 콤보에 도전!';
+}
+refreshHome();renderTopics();
+</script>
+</body>
+</html>
