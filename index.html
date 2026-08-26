@@ -306,6 +306,13 @@ button{font-family:inherit;cursor:pointer;border:none}
         <p>필답 이론 + 실기 계산 20문항. 채점 후 선생님께 결과 제출까지.</p>
         <div class="progtxt" id="testbesttxt" style="margin-top:12px">아직 기록 없음</div>
       </button>
+      <button class="mode learn" data-go="board">
+        <span class="tag">선생님용</span>
+        <div class="em">🖥️</div>
+        <h3>수업 슬라이드</h3>
+        <p>전자칠판·프로젝터로 앞에서 끌고 가는 화면. 요점 → 발문 → 퀴즈 → 정답을 하나씩 열어요.</p>
+        <div class="progtxt" style="margin-top:12px">← → 키로도 넘길 수 있어요</div>
+      </button>
     </div>
     <p class="foot">💡 처음이라면 <b>배우기</b>부터. 실기시험은 불꽃·브리넬경도·충격·조직 4작업 + 필답 15문항으로 구성됩니다.</p>
   </section>
@@ -371,6 +378,13 @@ button{font-family:inherit;cursor:pointer;border:none}
   <section id="view-test" class="hidden">
     <div class="section-title"><button class="back" data-go="home" id="testback">← 홈</button> 🎯 테스트</div>
     <div class="card" id="testcard"></div>
+  </section>
+
+  <!-- ============ BOARD (수업 슬라이드) — 예전 board.html 이 여기로 들어왔습니다 ============ -->
+  <section id="view-board" class="hidden">
+    <div class="section-title"><button class="back" data-go="home">← 홈</button> 🖥️ 수업 슬라이드</div>
+    <p class="foot" style="margin:0 0 14px">전자칠판·프로젝터로 앞에서 끌고 가는 화면입니다. 단원을 고르면 슬라이드가 열립니다.</p>
+    <div id="boardHome"></div>
   </section>
 </div>
 
@@ -463,9 +477,20 @@ $('soundbtn').onclick=()=>{const v=!FX.sound;FX.setSound(v);
   $('soundbtn').textContent=v?'🔊':'🔇';$('soundbtn').classList.toggle('on',v);};
 
 /* ===== router ===== */
-const views=['home','learn','deck','games','play','match','test'];
+const views=['home','learn','deck','games','play','match','test','board'];
 function go(v){views.forEach(x=>$('view-'+x).classList.toggle('hidden',x!==v));window.scrollTo(0,0);}
-document.body.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){go(b.dataset.go);if(b.dataset.go==='learn')renderTopics();if(b.dataset.go==='games')renderGamesHub();if(b.dataset.go==='home')refreshHome();if(b.dataset.go==='test')startTest();}});
+document.body.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b){go(b.dataset.go);if(b.dataset.go==='learn')renderTopics();if(b.dataset.go==='games')renderGamesHub();if(b.dataset.go==='home')refreshHome();if(b.dataset.go==='test')startTest();if(b.dataset.go==='board')openBoardHome();}});
+
+/* 수업 슬라이드 — 예전 board.html 을 이 안으로 들여왔다.
+   원고는 lesson.js, 화면은 board.js(모든 도구 공용)가 담당한다. */
+let boardReady=false;
+function openBoardHome(){
+  if(boardReady)return;
+  const el=$('boardHome');
+  if(!window.Board){el.innerHTML='<p class="foot">수업자료를 불러오지 못했습니다.</p>';return;}
+  Board.home(el,{hint:'실기(불꽃 · 경도 · 충격 · 조직)와 필답에서 실제로 묻는 것만 담았습니다. 슬라이드 끝의 버튼을 누르면 해당 게임 · 필답 CBT 로 넘어갑니다(<code>?rc=…</code> 유지).'});
+  boardReady=true;
+}
 
 /* =========================================================
    CANVAS ART — 불꽃 & 미세조직 (게임/학습 공용)
@@ -1034,6 +1059,9 @@ function refreshHome(){
 }
 refreshHome();renderTopics();
 </script>
+<!-- 수업 슬라이드 — 원고(lesson.js) + 공용 슬라이드 뷰어(board.js) -->
+<script src="lesson.js"></script>
+<script src="board.js"></script>
 <!-- 공용 기록 초기화 (교실 공용 PC용) -->
 <script src="https://hongyul67-cpu.github.io/links/reset.js"></script>
 <script src="https://hongyul67-cpu.github.io/links/backbar.js"></script>
